@@ -1,0 +1,153 @@
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+
+import lib.ExcelDataConfig;
+import lib.GlobalVariables;
+
+import org.testng.annotations.BeforeMethod;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.concurrent.TimeUnit;
+import org.junit.*;
+import org.openqa.selenium.*;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+public class TestWiki {
+  private WebDriver driver;
+  private StringBuffer verificationErrors = new StringBuffer();
+  GlobalVariables globalVariableObject = new GlobalVariables();
+  
+  //Set path to data sheets
+  String className = this.getClass().getName();
+  String path = globalVariableObject.getDataPath()+className.replace("src.", "")+".xlsx";
+  ExcelDataConfig config = new ExcelDataConfig(globalVariableObject.getDataPath()+className+".xlsx");
+  
+  @BeforeMethod
+public void setUp() throws Exception {
+    driver = new FirefoxDriver();
+    driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+  }
+  
+  //	Create Data  
+ @DataProvider(name = "excelData")
+ public Object[][] passData(){
+	 
+	 int rows = config.getRowCount(0);
+	 int columns = config.getColumnCount(0);
+	 
+	 Object[][] data = new Object[rows][columns];
+	 	 
+	  for(int i=0;i<rows;i++){
+		 
+		  for(int c=0;c<columns;c++){
+				   			
+			  data[i][c] = config.getData(0, i, c);
+		  }
+	  
+	  }
+	  
+	  return data;
+ }
+
+  @Test(dataProvider = "excelData")
+  public void testWiki(String searchItem,String heading,String p,String v,String p1,String v1,String p2,String v2,String p3,
+		  			   String v3,String p4,String v4,String p5,String v5,String p6,String v6,String p7,String v7) throws Exception {
+    
+	driver.get(globalVariableObject.getWikiUrl());
+    driver.findElement(By.id("searchInput")).clear();
+    driver.findElement(By.id("searchInput")).sendKeys(searchItem);
+    driver.findElement(By.id("searchButton")).click();
+    //Verify Title
+    AssertJUnit.assertEquals(heading, driver.findElement(By.id("firstHeading")).getText());
+    
+    //Verify Properties
+    AssertJUnit.assertEquals(p, driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[16]/th")).getText());
+    AssertJUnit.assertEquals(v, driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[16]/td")).getText());
+    AssertJUnit.assertEquals(p1, driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[17]/th")).getText());
+    assertEquals(v1,driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[17]/td")).getText());
+    AssertJUnit.assertEquals(p2, driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[18]/th")).getText());
+    AssertJUnit.assertEquals(v2, driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[18]/td")).getText());
+    AssertJUnit.assertEquals(p3, driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[19]/th")).getText());
+    AssertJUnit.assertEquals(v3, driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[19]/td")).getText());
+    AssertJUnit.assertEquals(p4, driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[20]/th")).getText());
+    AssertJUnit.assertEquals(v4, driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[20]/td")).getText());
+    AssertJUnit.assertEquals(p5, driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[21]/th")).getText());
+    AssertJUnit.assertEquals(v5, driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[21]/td")).getText());
+    AssertJUnit.assertEquals(p6, driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[22]/th")).getText());
+    AssertJUnit.assertEquals(v6, driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[22]/td")).getText());
+    AssertJUnit.assertEquals(p7, driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[23]/th")).getText());
+    AssertJUnit.assertEquals(v7, driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[23]/td")).getText());
+    AssertJUnit.assertTrue(driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[24]/td")).isDisplayed());
+    
+    //Verify Gold Compound section opens and closes
+    String obj = "//table[@id='collapsibleTable1']/tbody/tr[5]/th"; //object to search for when open and closed
+    driver.findElement(By.id("collapseButton1")).click();
+    for (int second = 0;; second++) {
+    	if (second >= 60) fail("timeout");
+    	try { if (isElementPresent(By.xpath(obj))) break; } catch (Exception e) {}
+    	Thread.sleep(2000);
+    }
+
+    driver.findElement(By.id("collapseButton1")).click();
+    Thread.sleep(2000);
+    
+    for (int second = 0;; second++) {
+    	if (second >= 60) fail("timeout");
+    try { if (isElementPresent(By.xpath(obj))) break;} catch (Exception e) {}
+    }
+  }
+  
+    
+
+
+@AfterMethod
+public void tearDown() throws Exception {
+    driver.quit();
+    String verificationErrorString = verificationErrors.toString();
+    if (!"".equals(verificationErrorString)) {
+      Assert.fail(verificationErrorString);
+    }
+  }
+
+private boolean isElementPresent(By by) {
+    try {
+      driver.findElement(by);
+      return true;
+    } catch (NoSuchElementException e) {
+      return false;
+    }
+  }
+
+private boolean isAlertPresent() {
+    try {
+      driver.switchTo().alert();
+      return true;
+    } catch (NoAlertPresentException e) {
+      return false;
+    }
+  }
+
+private String closeAlertAndGetItsText() {
+    boolean acceptNextAlert = false;
+	try {
+      Alert alert = driver.switchTo().alert();
+      String alertText = alert.getText();
+      if (acceptNextAlert) {
+        alert.accept();
+      } else {
+        alert.dismiss();
+      }
+      return alertText;
+    } finally {
+      acceptNextAlert = true;
+    }
+  }
+
+}

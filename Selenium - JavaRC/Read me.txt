@@ -1,0 +1,24 @@
+-----------------------------------------------------------------
+Instructions to Run Selenium Tests
+-----------------------------------------------------------------
+
+#Download Eclipse 64bit or 32bit (Depending on operatiing system)	- http://www.eclipse.org/downloads/index.php?show_instructions=TRUE
+#Download Java 64bit or 32bit (Depending on operatiing system)		- http://www.java.com/en/download/manual.jsp
+#Once Eclipse and Java is installed, run eclipse
+#Create a new workspace in Eclipse called "EclipseWorkspace" here C:\Users\USER
+#Copy the "EclipseWorkspace" folder to C:\Users\USER - Overwrite with the one provided
+#Include all the libraries in the "Jar Files" folder into eclipse
+#Install "selenium_ide-2.9.1-fx.xpi" (Selenium IDE) onto Mozilla firefox as an add on
+#Install TestNG via eclipse marketplace - this is found in Eclipse(Help->Eclipse Marketplace...)
+#Once the project is open in eclipse navigate via the package explorer to TestWiki->src->(defualt package)
+#Run each of the tests seperately (TestApi.java & TestWiki.java)
+
+
+
+
+
+
+
+
+
+*Make sure MS Office is installed as the data for the tests are read from excel data sheets.

@@ -1,0 +1,97 @@
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+
+import lib.ExcelDataConfig;
+import lib.GlobalVariables;
+
+import org.testng.annotations.BeforeMethod;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.concurrent.TimeUnit;
+import org.junit.*;
+import org.openqa.selenium.*;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+public class TestWiki {
+  private WebDriver driver;
+  private StringBuffer verificationErrors = new StringBuffer();
+  GlobalVariables globalVariableObject = new GlobalVariables();
+  
+  //Set path to data sheets
+  String className = this.getClass().getName();
+  String path = globalVariableObject.getDataPath()+className.replace("src.", "")+".xlsx";
+  ExcelDataConfig config = new ExcelDataConfig(globalVariableObject.getDataPath()+className+".xlsx");
+  
+  @BeforeMethod
+public void setUp() throws Exception {
+    driver = new FirefoxDriver();
+    driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+  }
+  
+  //	Create Data  
+ @DataProvider(name = "excelData")
+ public Object[][] passData(){
+	 
+	 int rows = config.getRowCount(0);
+	 int columns = config.getColumnCount(0);
+	 
+	 Object[][] data = new Object[rows][columns];
+	 	 
+	  for(int i=0;i<rows;i++){
+		 
+		  for(int c=0;c<columns;c++){
+				   			
+			  data[i][c] = config.getData(0, i, c);
+		  }
+	  
+	  }
+	  
+	  return data;
+ }
+
+  @Test(dataProvider = "excelData")
+  public void testWiki(String searchItem,String heading) throws Exception {
+    
+	driver.get(globalVariableObject.getWikiUrl());
+    driver.findElement(By.id("searchInput")).clear();
+    driver.findElement(By.id("searchInput")).sendKeys(searchItem);
+    driver.findElement(By.id("searchButton")).click();
+    //Verify Title
+    AssertJUnit.assertEquals(heading, driver.findElement(By.id("firstHeading")).getText());
+    
+    //Verify Properties
+    AssertJUnit.assertEquals("Phase", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[16]/th")).getText());
+    AssertJUnit.assertEquals("solid", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[16]/td")).getText());
+    AssertJUnit.assertEquals("Melting point", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[17]/th")).getText());
+    AssertJUnit.assertEquals("1337.33 K ​(1064.18 °C, ​1947.52 °F)", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[17]/td")).getText());
+    AssertJUnit.assertEquals("Boiling point", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[18]/th")).getText());
+    AssertJUnit.assertEquals("3243 K ​(2970 °C, ​5378 °F)", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[18]/td")).getText());
+    AssertJUnit.assertEquals("Density near r.t.", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[19]/th")).getText());
+    AssertJUnit.assertEquals("19.30 g/cm3", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[19]/td")).getText());
+    AssertJUnit.assertEquals("when liquid, at m.p.", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[20]/th")).getText());
+    AssertJUnit.assertEquals("17.31 g/cm3", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[20]/td")).getText());
+    AssertJUnit.assertEquals("Heat of fusion", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[21]/th")).getText());
+    AssertJUnit.assertEquals("12.55 kJ/mol", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[21]/td")).getText());
+    AssertJUnit.assertEquals("Heat of vaporization", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[22]/th")).getText());
+    AssertJUnit.assertEquals("342 kJ/mol", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[22]/td")).getText());
+    AssertJUnit.assertEquals("Molar heat capacity", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[23]/th")).getText());
+    AssertJUnit.assertEquals("25.418 J/(mol·K)", driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[23]/td")).getText());
+    AssertJUnit.assertTrue(driver.findElement(By.xpath("//div[@id='mw-content-text']/table/tbody/tr[24]/td")).isDisplayed());
+  }
+  
+    
+  @AfterMethod
+public void tearDown() throws Exception {
+    driver.quit();
+    String verificationErrorString = verificationErrors.toString();
+    if (!"".equals(verificationErrorString)) {
+      Assert.fail(verificationErrorString);
+    }
+  }
+}

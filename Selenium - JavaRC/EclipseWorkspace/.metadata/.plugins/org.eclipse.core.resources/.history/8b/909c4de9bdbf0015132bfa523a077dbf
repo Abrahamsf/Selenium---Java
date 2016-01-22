@@ -1,0 +1,81 @@
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+
+import lib.ExcelDataConfig;
+import lib.GlobalVariables;
+
+import org.testng.annotations.BeforeMethod;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.concurrent.TimeUnit;
+import org.junit.*;
+import org.openqa.selenium.*;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+public class TestWiki {
+  private WebDriver driver;
+  private StringBuffer verificationErrors = new StringBuffer();
+  GlobalVariables globalVariableObject = new GlobalVariables();
+  
+  //Set path to data sheets
+  String className = this.getClass().getName();
+  String path = globalVariableObject.getDataPath()+className.replace("src.", "")+".xlsx";
+  ExcelDataConfig config = new ExcelDataConfig(globalVariableObject.getDataPath()+className+".xlsx");
+  
+  @BeforeMethod
+public void setUp() throws Exception {
+    driver = new FirefoxDriver();
+    driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+  }
+  
+  //	Create Data  
+ @DataProvider(name = "excelData")
+ public Object[][] passData(){
+	 
+	 int rows = config.getRowCount(0);
+	 int columns = config.getColumnCount(0);
+	 
+	 Object[][] data = new Object[rows][columns];
+	 	 
+	  for(int i=0;i<rows;i++){
+		 
+		  for(int c=0;c<columns;c++){
+				   			
+			  data[i][c] = config.getData(0, i, c);
+		  }
+	  
+	  }
+	  
+	  return data;
+ }
+
+  @Test(dataProvider = "excelData")
+  public void testWiki(String searchItem,String heading) throws Exception {
+    
+	driver.get(globalVariableObject.getWikiUrl());
+    driver.findElement(By.id("searchInput")).clear();
+    driver.findElement(By.id("searchInput")).sendKeys(searchItem);
+    driver.findElement(By.id("searchButton")).click();
+    //Verify Title
+    AssertJUnit.assertEquals(heading, driver.findElement(By.id("firstHeading")).getText());
+    
+    //Verify Properties
+    
+  }
+  
+    
+  @AfterMethod
+public void tearDown() throws Exception {
+    driver.quit();
+    String verificationErrorString = verificationErrors.toString();
+    if (!"".equals(verificationErrorString)) {
+      Assert.fail(verificationErrorString);
+    }
+  }
+}

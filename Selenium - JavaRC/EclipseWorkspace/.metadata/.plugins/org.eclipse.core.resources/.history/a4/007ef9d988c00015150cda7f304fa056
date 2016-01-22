@@ -1,0 +1,123 @@
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+
+import lib.ExcelDataConfig;
+import lib.GlobalVariables;
+
+import org.testng.annotations.BeforeMethod;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.concurrent.TimeUnit;
+import org.junit.*;
+import org.openqa.selenium.*;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+public class TestApi {
+  private WebDriver driver = new FirefoxDriver();;
+  private boolean acceptNextAlert = true;
+  private StringBuffer verificationErrors = new StringBuffer();
+  GlobalVariables globalVariableObject = new GlobalVariables();  
+  
+  //Set path to data sheets
+  String className = this.getClass().getName();
+  String path = globalVariableObject.getDataPath()+className.replace("src.", "")+".xlsx";
+  ExcelDataConfig config = new ExcelDataConfig(path);
+
+  @Before
+  public void setUp() throws Exception {
+  
+    driver.manage().window().maximize();
+    driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+  }
+  
+  //	Create Data Looping through excel rows and columns  
+  @DataProvider(name = "excelData")
+  public Object[][] passData(){
+ 	 
+ 	 int rows = config.getRowCount(0);
+ 	 int columns = config.getColumnCount(0);
+ 	 
+ 	 Object[][] data = new Object[rows][columns];
+ 	 	 
+ 	  for(int i=0;i<rows;i++){
+ 		 
+ 		  for(int c=0;c<columns;c++){
+ 				   			
+ 			  data[i][c] = config.getData(0, i, c);
+ 		  }
+ 	  
+ 	  }
+ 	  
+ 	  return data;
+  }
+
+  @Test(dataProvider = "excelData")
+  public void testApi(String url,String testType) throws Exception {
+	  
+	  driver.get(url);
+	  
+	  String response = driver.findElement(By.tagName("body")).getText();
+	 
+	  //If test positive - Validate json
+	  //If test negative - check for invalid response
+	  if(testType.toLowerCase().equals("positive")){
+			driver.get(globalVariableObject.getValidatorUrl());
+			Thread.sleep(3000);
+			//driver.findElement(By.cssSelector("div > textarea")).clear();
+			driver.findElement(By.cssSelector("div > textarea")).sendKeys("asdas");
+			driver.findElement(By.cssSelector("div > textarea")).sendKeys(response.toString());
+			driver.findElement(By.cssSelector("button[type=\"submit\"]")).click();
+				
+			assertEquals("Valid JSON", driver.findElement(By.id("result")).getText());
+	  }
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    driver.quit();
+    String verificationErrorString = verificationErrors.toString();
+    if (!"".equals(verificationErrorString)) {
+      fail(verificationErrorString);
+    }
+  }
+
+  private boolean isElementPresent(By by) {
+    try {
+      driver.findElement(by);
+      return true;
+    } catch (NoSuchElementException e) {
+      return false;
+    }
+  }
+
+  private boolean isAlertPresent() {
+    try {
+      driver.switchTo().alert();
+      return true;
+    } catch (NoAlertPresentException e) {
+      return false;
+    }
+  }
+
+  private String closeAlertAndGetItsText() {
+    try {
+      Alert alert = driver.switchTo().alert();
+      String alertText = alert.getText();
+      if (acceptNextAlert) {
+        alert.accept();
+      } else {
+        alert.dismiss();
+      }
+      return alertText;
+    } finally {
+      acceptNextAlert = true;
+    }
+  }
+}
